@@ -37,6 +37,11 @@ func main() {
 		whitelist.POST("/remove", handlers.WhitelistRemove)
 	}
 
+	port := os.Getenv("MP_PORT")
+	if port == "" {
+		port = "8080"
+	}
+
 	// HTML Routes
 	r.GET("", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.tmpl", gin.H{
@@ -44,7 +49,7 @@ func main() {
 		})
 	})
 
-	utils.Logger("Listening and serving MinePass on port :8080")
+	utils.Logger("Listening and serving MinePass on port :" + port)
 
-	r.Run(":8080")
+	r.Run(":" + port)
 }

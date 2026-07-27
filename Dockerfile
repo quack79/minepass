@@ -25,5 +25,6 @@ COPY assets assets
 EXPOSE 8080
 
 ENV GIN_MODE=release
+ENV MP_PORT=8080
 
 CMD ["./minepass"]
