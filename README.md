@@ -31,6 +31,53 @@
     gabefraser/minepass:latest
     ```
 
+### Running MinePass with Docker Compose
+
+Create a `compose.yaml` file with the following contents, then run `docker compose up -d`.
+
+```yaml
+services:
+  minepass:
+    image: gabefraser/minepass:latest
+    environment:
+      MP_HOST: YOUR_SERVER_IP
+      MP_PASSWORD: YOUR_SERVER_RCON_PASSWORD
+      MP_UI_PASSWORD: YOUR_UI_PASSWORD
+      MP_TITLE: YOUR_TITLE # Optional; defaults to "MinePass"
+    ports:
+      - "8080:8080"
+```
+
+### Building MinePass Locally with Docker Compose
+
+Clone the repository and enter its directory:
+
+```shell
+git clone https://github.com/gabefraser/minepass.git
+cd minepass
+```
+
+Create a `compose.yaml` file with the following contents:
+
+```yaml
+services:
+  minepass:
+    build: .
+    environment:
+      MP_HOST: YOUR_SERVER_IP
+      MP_PASSWORD: YOUR_SERVER_RCON_PASSWORD
+      MP_UI_PASSWORD: YOUR_UI_PASSWORD
+      MP_TITLE: YOUR_TITLE # Optional; defaults to "MinePass"
+    ports:
+      - "8080:8080"
+```
+
+Build and start MinePass:
+
+```shell
+docker compose up -d --build
+```
+
 ## Usage
 There are 2 ways you can communicate with this.
 
