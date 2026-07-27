@@ -23,13 +23,15 @@
    placeholders with your configuration.
     ```shell
    docker run -d \
-    -e MP_HOST=YOUR_SERVER_IP \
+    -e MP_HOST=YOUR_SERVER_IP:YOUR_RCON_PORT \
     -e MP_PASSWORD=YOUR_SERVER_RCON_PASSWORD \
     -e MP_UI_PASSWORD=YOUR_UI_PASSWORD \
     -e MP_TITLE=YOUR_TITLE \ # optional, will default to "MinePass"
     -p 8080:8080 \
     gabefraser/minepass:latest
     ```
+
+   `MP_HOST` must include the RCON port (for example, `192.168.20.62:25575`).
 
 ### Running MinePass with Docker Compose
 
@@ -39,8 +41,9 @@ Create a `compose.yaml` file with the following contents, then run `docker compo
 services:
   minepass:
     image: gabefraser/minepass:latest
+    container_name: minepass
     environment:
-      MP_HOST: YOUR_SERVER_IP
+      MP_HOST: YOUR_SERVER_IP:YOUR_RCON_PORT
       MP_PASSWORD: YOUR_SERVER_RCON_PASSWORD
       MP_UI_PASSWORD: YOUR_UI_PASSWORD
       MP_TITLE: YOUR_TITLE # Optional; defaults to "MinePass"
@@ -63,8 +66,9 @@ Create a `compose.yaml` file with the following contents:
 services:
   minepass:
     build: .
+    container_name: minepass
     environment:
-      MP_HOST: YOUR_SERVER_IP
+      MP_HOST: YOUR_SERVER_IP:YOUR_RCON_PORT
       MP_PASSWORD: YOUR_SERVER_RCON_PASSWORD
       MP_UI_PASSWORD: YOUR_UI_PASSWORD
       MP_TITLE: YOUR_TITLE # Optional; defaults to "MinePass"
