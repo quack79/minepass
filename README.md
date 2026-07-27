@@ -25,6 +25,7 @@
    docker run -d \
     -e MP_HOST=YOUR_SERVER_IP:YOUR_RCON_PORT \
     -e MP_PASSWORD=YOUR_SERVER_RCON_PASSWORD \
+    -e MP_UI_USERNAME=YOUR_UI_USERNAME \
     -e MP_UI_PASSWORD=YOUR_UI_PASSWORD \
     -e MP_TITLE=YOUR_TITLE \ # optional, will default to "MinePass"
     -p 8080:8080 \
@@ -45,6 +46,7 @@ services:
     environment:
       MP_HOST: YOUR_SERVER_IP:YOUR_RCON_PORT
       MP_PASSWORD: YOUR_SERVER_RCON_PASSWORD
+      MP_UI_USERNAME: YOUR_UI_USERNAME # Optional; defaults to "admin"
       MP_UI_PASSWORD: YOUR_UI_PASSWORD
       MP_TITLE: YOUR_TITLE # Optional; defaults to "MinePass"
     ports:
@@ -70,6 +72,7 @@ services:
     environment:
       MP_HOST: YOUR_SERVER_IP:YOUR_RCON_PORT
       MP_PASSWORD: YOUR_SERVER_RCON_PASSWORD
+      MP_UI_USERNAME: YOUR_UI_USERNAME # Optional; defaults to "admin"
       MP_UI_PASSWORD: YOUR_UI_PASSWORD
       MP_TITLE: YOUR_TITLE # Optional; defaults to "MinePass"
     ports:
@@ -93,17 +96,19 @@ Once the Docker image is up and running, head over to `0.0.0.0:8080` (your IP wi
 ### Via the Web API
 There are currently 2 endpoints available. You can find them below.
 
-Each endpoint requires the following header as this is used to validate the request is coming from a trusted source.
+Each endpoint requires the following headers as these are used to validate the request is coming from a trusted source. `MP_UI_USERNAME` defaults to `admin` when it is not configured.
 ```json
 {
+    "X-Api-Username": "YOUR_UI_USERNAME",
     "X-Api-Key": "YOUR_UI_PASSWORD"
 }
 ```
 
-| **URL**              | **Method** | **Body**                 |
-|----------------------|------------|--------------------------|
-| api/whitelist/add    | POST       | { "username": "string" } |
-| api/whitelist/remove | POST       | { "username": "string" } |
+| **URL**              | **Method** | **Body**                    |
+|----------------------|------------|-----------------------------|
+| api/whitelist        | GET        | —                           |
+| api/whitelist/add    | POST       | { "username": "string" }    |
+| api/whitelist/remove | POST       | { "username": "string" }    |
 
 ## Credits
 

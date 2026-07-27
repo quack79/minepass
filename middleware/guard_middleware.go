@@ -8,26 +8,31 @@ import (
 )
 
 func GuardMiddleware(c *gin.Context) {
+	username := os.Getenv("MP_UI_USERNAME")
+	if username == "" {
+		username = "admin"
+	}
 	password := os.Getenv("MP_UI_PASSWORD")
 
+	apiUsername := c.GetHeader("X-Api-Username")
 	apiKey := c.GetHeader("X-Api-Key")
-	if apiKey == "" {
-		utils.Logger("Missing password from the request from " + c.ClientIP())
+	if apiUsername == "" || apiKey == "" {
+		utils.Logger("Missing credentials from the request from " + c.ClientIP())
 
 		c.JSON(401, gin.H{
 			"success": false,
-			"message": "Missing password from the request",
+			"message": "Missing username or password from the request",
 		})
 		c.Abort()
 		return
 	}
 
-	if apiKey != password {
-		utils.Logger("Incorrect password from " + c.ClientIP())
+	if apiUsername != username || apiKey != password {
+		utils.Logger("Incorrect credentials from " + c.ClientIP())
 
 		c.JSON(401, gin.H{
 			"success": false,
-			"message": "Incorrect password",
+			"message": "Incorrect username or password",
 		})
 		c.Abort()
 		return

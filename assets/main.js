@@ -1,95 +1,123 @@
-let password = "";
-let passwordFailCounter = 0;
+let credentials = null;
 
-/**
- * Validates the password entered when first a user first enters the site
- */
-async function validatePassword() {
-    if (passwordFailCounter >= 5) {
-        window.location.href = "https://minecraft.net";
+const loginView = document.getElementById("loginView");
+const dashboardView = document.getElementById("dashboardView");
+const loginForm = document.getElementById("loginForm");
+const whitelistForm = document.getElementById("whitelistForm");
+const playerList = document.getElementById("playerList");
+const playerCount = document.getElementById("playerCount");
+const statusMessage = document.getElementById("statusMessage");
+const loginError = document.getElementById("loginError");
+
+function headers(json = false) {
+    const result = { "X-Api-Username": credentials.username, "X-Api-Key": credentials.password };
+    if (json) result["Content-Type"] = "application/json";
+    return result;
+}
+
+async function request(path, options = {}) {
+    const response = await fetch(path, { ...options, headers: { ...headers(Boolean(options.body)), ...options.headers } });
+    const body = await response.json();
+    if (!response.ok || body.success !== true) throw new Error(body.message || "Request failed");
+    return body;
+}
+
+function showStatus(message, type = "success") {
+    statusMessage.textContent = message;
+    statusMessage.className = `status-message ${type}`;
+    statusMessage.hidden = false;
+}
+
+function renderPlayers(players) {
+    playerList.replaceChildren();
+    playerCount.textContent = players.length;
+    if (players.length === 0) {
+        const empty = document.createElement("p");
+        empty.className = "empty-state";
+        empty.textContent = "No players are currently whitelisted.";
+        playerList.append(empty);
         return;
     }
-
-    password = prompt("Password");
-
-    if (password !== "") {
-        const validation = await fetch("api/validate", {
-            method: "POST",
-            headers: {
-                "X-Api-Key": password,
-            }
-        });
-
-        const response = await validation.json();
-        if (response.success !== true) {
-            passwordFailCounter++;
-            alert("Wrong password");
-            await validatePassword();
-        }
+    for (const username of players) {
+        const row = document.createElement("div");
+        row.className = "player-row";
+        const name = document.createElement("span");
+        name.textContent = username;
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.className = "remove-button";
+        remove.textContent = "Remove";
+        remove.addEventListener("click", () => removePlayer(username, remove));
+        row.append(name, remove);
+        playerList.append(row);
     }
 }
 
-/**
- * Function to handle form submission
- * @param {Event} e 
- * @returns void
- */
-async function whitelistUser(e) {
-    e.preventDefault();
-
-    const form = document.getElementById("whitelistForm");
-    const formData = new FormData(form);
-
-    const username = formData.get("username");
-    if (username === undefined || username === "") {
-        alert("Please enter a valid username");
-        return false;
-    }
-
-    if (!validateUsername(username)) {
-        alert("Please enter a valid username");
-        return false;
-    }
-
+async function loadPlayers() {
+    playerList.setAttribute("aria-busy", "true");
     try {
-        const request = await fetch(
-            "api/whitelist/add",
-            {
-                method: "POST",
-                body: JSON.stringify({
-                    username
-                }),
-                headers: {
-                    "X-Api-Key": password,
-                    "Content-Type": "application/json",
-                },
-            },
-        );
-
-        const response = await request.json();
-    
-        if (response.success !== true) {
-            alert(response.message);
-            return false;
-        }
-
-        alert(response.message);
-        form.reset();
-    } catch (err) {
-        console.log(`Error ${err.message}`);
-        alert("There was an error adding to the whitelist");
+        const response = await request("/api/whitelist");
+        renderPlayers(response.players || []);
+    } catch (error) {
+        renderPlayers([]);
+        showStatus(error.message, "error");
+    } finally {
+        playerList.removeAttribute("aria-busy");
     }
-    
 }
 
-/**
- * Validates if the username is invalid by splitting by string
- * @param {string} username 
- * @returns 
- */
-function validateUsername(username) {
-    return username.split(" ").length === 1;
+async function removePlayer(username, button) {
+    button.disabled = true;
+    try {
+        const response = await request("/api/whitelist/remove", { method: "POST", body: JSON.stringify({ username }) });
+        showStatus(response.message || `${username} was removed.`);
+        await loadPlayers();
+    } catch (error) {
+        showStatus(error.message, "error");
+        button.disabled = false;
+    }
 }
 
-// Entrypoint
-validatePassword();
+loginForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = new FormData(loginForm);
+    credentials = { username: form.get("username"), password: form.get("password") };
+    loginError.hidden = true;
+    try {
+        await request("/api/validate", { method: "POST" });
+        loginView.hidden = true;
+        dashboardView.hidden = false;
+        await loadPlayers();
+    } catch (error) {
+        credentials = null;
+        loginError.textContent = error.message;
+        loginError.hidden = false;
+    }
+});
+
+whitelistForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const input = document.getElementById("playerUsername");
+    const username = input.value.trim();
+    if (!/^[A-Za-z0-9_]{3,16}$/.test(username)) {
+        showStatus("Use a Minecraft Java username: 3–16 letters, numbers, or underscores.", "error");
+        return;
+    }
+    try {
+        const response = await request("/api/whitelist/add", { method: "POST", body: JSON.stringify({ username }) });
+        showStatus(response.message || `${username} was added.`);
+        whitelistForm.reset();
+        await loadPlayers();
+    } catch (error) {
+        showStatus(error.message, "error");
+    }
+});
+
+document.getElementById("refreshButton").addEventListener("click", loadPlayers);
+document.getElementById("signOutButton").addEventListener("click", () => {
+    credentials = null;
+    dashboardView.hidden = true;
+    loginView.hidden = false;
+    loginForm.reset();
+    document.getElementById("loginUsername").focus();
+});

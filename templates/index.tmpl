@@ -3,20 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ .title }}</title>
+    <title>{{ if .title }}{{ .title }}{{ else }}MinePass{{ end }}</title>
+    <link rel="stylesheet" href="/assets/main.css">
 </head>
 <body>
-    {{ if .title }}
-    <h1>{{ .title }}</h1>
-    {{ else }}
-    <h1>MinePass</h1>
-    {{ end }}
+    <main class="page-shell">
+        <section class="login-card" id="loginView" aria-labelledby="loginTitle">
+            <div class="brand-mark" aria-hidden="true">M</div>
+            <p class="eyebrow">Minecraft server access</p>
+            <h1 id="loginTitle">{{ if .title }}{{ .title }}{{ else }}MinePass{{ end }}</h1>
+            <p class="intro">Sign in to manage your server’s whitelist.</p>
+            <form id="loginForm" class="stacked-form">
+                <label for="loginUsername">Username</label>
+                <input id="loginUsername" name="username" type="text" autocomplete="username" required autofocus>
+                <label for="loginPassword">Password</label>
+                <input id="loginPassword" name="password" type="password" autocomplete="current-password" required>
+                <p id="loginError" class="form-error" role="alert" hidden></p>
+                <button type="submit" class="primary-button">Sign in</button>
+            </form>
+        </section>
 
-    <form id="whitelistForm" method="POST" action="api/whitelist/add">
-        <input type="text" placeholder="Username" name="username" required>
-        <input type="submit" onclick="whitelistUser(event)">
-    </form>
-
+        <section class="dashboard" id="dashboardView" hidden aria-labelledby="dashboardTitle">
+            <header class="dashboard-header">
+                <div>
+                    <p class="eyebrow">Whitelist manager</p>
+                    <h1 id="dashboardTitle">{{ if .title }}{{ .title }}{{ else }}MinePass{{ end }}</h1>
+                </div>
+                <button id="signOutButton" class="text-button" type="button">Sign out</button>
+            </header>
+            <div id="statusMessage" class="status-message" role="status" hidden></div>
+            <div class="dashboard-grid">
+                <section class="panel add-player-panel" aria-labelledby="addPlayerTitle">
+                    <p class="panel-kicker">Add access</p>
+                    <h2 id="addPlayerTitle">Whitelist a player</h2>
+                    <p class="panel-copy">Enter a Minecraft Java username to grant access immediately.</p>
+                    <form id="whitelistForm" class="add-player-form">
+                        <label class="sr-only" for="playerUsername">Minecraft username</label>
+                        <input id="playerUsername" name="username" type="text" placeholder="Minecraft username" maxlength="16" autocomplete="off" required>
+                        <button type="submit" class="primary-button">Add player</button>
+                    </form>
+                </section>
+                <section class="panel player-list-panel" aria-labelledby="playerListTitle">
+                    <div class="panel-heading">
+                        <div>
+                            <p class="panel-kicker">Current access</p>
+                            <h2 id="playerListTitle">Whitelisted players <span id="playerCount">0</span></h2>
+                        </div>
+                        <button id="refreshButton" class="icon-button" type="button" aria-label="Refresh whitelisted players">↻</button>
+                    </div>
+                    <div id="playerList" class="player-list" aria-live="polite"></div>
+                </section>
+            </div>
+        </section>
+    </main>
     <script src="/assets/main.js"></script>
 </body>
 </html>

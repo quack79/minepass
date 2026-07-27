@@ -27,11 +27,14 @@ func main() {
 	})
 
 	// API Routes
-	v1 := r.Group("/api", middleware.GuardMiddleware, middleware.RconMiddleware)
+	v1 := r.Group("/api", middleware.GuardMiddleware)
+	v1.POST("/validate", handlers.Validate)
+
+	whitelist := v1.Group("/whitelist", middleware.RconMiddleware)
 	{
-		v1.POST("/whitelist/add", handlers.WhitelistAdd)
-		v1.POST("/whitelist/remove", handlers.WhitelistRemove)
-		v1.POST("/validate", handlers.Validate)
+		whitelist.GET("", handlers.WhitelistList)
+		whitelist.POST("/add", handlers.WhitelistAdd)
+		whitelist.POST("/remove", handlers.WhitelistRemove)
 	}
 
 	// HTML Routes
